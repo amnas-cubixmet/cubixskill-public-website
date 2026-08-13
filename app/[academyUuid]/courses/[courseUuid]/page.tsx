@@ -184,21 +184,12 @@ export default function CourseDetailPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Link href={`/${academyUuid}/register`} className="block">
+            <div className="w-full">
+              <Link href={`/${academyUuid}/register?course=${courseUuid}`} className="block w-full">
                 <Button size="lg" style={primaryStyle} className="w-full font-semibold justify-center text-white min-h-[48px]">
                   Enroll Now
                 </Button>
               </Link>
-              <Button
-                size="md"
-                variant="outline"
-                onClick={() => setDemoModalOpen(true)}
-                className="w-full font-semibold justify-center min-h-[44px] bg-white border-amber-300 text-amber-900 hover:bg-amber-50"
-                leftIcon={<Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />}
-              >
-                Book Free 5-Day Demo
-              </Button>
             </div>
           </div>
         </div>
