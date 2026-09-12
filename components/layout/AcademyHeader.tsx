@@ -31,7 +31,7 @@ export const AcademyHeader: React.FC<AcademyHeaderProps> = ({ academy }) => {
           <img
             src={academy.logoUrl}
             alt={academy.name}
-            className="w-10 h-10 md:w-11 md:h-11 rounded-2xl object-cover border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform"
+            className="w-10 h-10 md:w-11 md:h-11 rounded-2xl object-contain border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform bg-white"
           />
           <div>
             <span className="font-extrabold text-sm md:text-base text-slate-900 tracking-tight block leading-tight">
