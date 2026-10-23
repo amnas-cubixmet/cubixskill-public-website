@@ -12,7 +12,6 @@ import { TextInput } from '@/components/ui/TextInput';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { Button } from '@/components/ui/Button';
 import { FormAlert } from '@/components/ui/FormAlert';
-import { useLeadStore } from '@/stores/lead.store';
 import { toast } from 'sonner';
 
 const registerAcademySchema = z.object({
@@ -26,7 +25,6 @@ const registerAcademySchema = z.object({
 type RegisterAcademyFormValues = z.infer<typeof registerAcademySchema>;
 
 export default function InstructorRegisterPage() {
-  const createInstructorRegLead = useLeadStore((state) => state.createInstructorRegLead);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [registeredEmail, setRegisteredEmail] = useState<string>('');
   const [apiError, setApiError] = useState<string | null>(null);
@@ -52,7 +50,7 @@ export default function InstructorRegisterPage() {
   const onSubmit = async (data: RegisterAcademyFormValues) => {
     setApiError(null);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+      const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
       const fullPhone = `${data.countryCode}${data.phone}`;
 
       const res = await fetch(`${baseUrl}/api/v1/auth/register/academy/`, {
@@ -72,15 +70,6 @@ export default function InstructorRegisterPage() {
         throw new Error(responseData.message || responseData.detail || 'Registration failed. Please try again.');
       }
 
-      // Record lead locally in lead store for tracking
-      createInstructorRegLead({
-        fullName: data.fullName,
-        email: data.email,
-        countryCode: data.countryCode,
-        phone: data.phone,
-        academyName: data.academyName,
-      });
-
       setRegisteredEmail(data.email);
       setIsCompleted(true);
       toast.success('Registration Submitted Successfully!', {
@@ -96,8 +85,8 @@ export default function InstructorRegisterPage() {
     if (!registeredEmail) return;
     setIsResending(true);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-      const res = await fetch(`${baseUrl}/api/v1/auth/email/resend/`, {
+      const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+      const res = await fetch(`${baseUrl}/api/v1/auth/password/setup/resend/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: registeredEmail }),
@@ -177,7 +166,7 @@ export default function InstructorRegisterPage() {
               >
                 Resend Email
               </Button>
-              <a href="http://localhost:5173/login" target="_self">
+              <a href={process.env.NEXT_PUBLIC_INSTRUCTOR_LOGIN_URL || "http://localhost:5173/login"}>
                 <Button
                   type="button"
                   size="md"
