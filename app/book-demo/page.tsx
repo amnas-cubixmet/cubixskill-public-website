@@ -5,14 +5,13 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Sparkles, CheckCircle2, ArrowLeft, Calendar, Clock, Globe } from 'lucide-react';
+import { CheckCircle2, ArrowLeft } from 'lucide-react';
 import { MainHeader } from '@/components/layout/MainHeader';
 import { MainFooter } from '@/components/layout/MainFooter';
 import { TextInput } from '@/components/ui/TextInput';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { Button } from '@/components/ui/Button';
 import { FormAlert } from '@/components/ui/FormAlert';
-import { useLeadStore } from '@/stores/lead.store';
 import { toast } from 'sonner';
 
 const bookDemoSchema = z.object({
@@ -35,7 +34,7 @@ const bookDemoSchema = z.object({
 type BookDemoFormValues = z.infer<typeof bookDemoSchema>;
 
 export default function BookDemoPage() {
-  const createBookDemoLead = useLeadStore((state) => state.createBookDemoLead);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [submittedLeadUuid, setSubmittedLeadUuid] = useState<string | null>(null);
 
   const {
@@ -59,33 +58,48 @@ export default function BookDemoPage() {
   });
 
   const onSubmit = async (data: BookDemoFormValues) => {
+    setApiError(null);
     try {
-      const leadUuid = createBookDemoLead({
-        fullName: data.fullName,
-        email: data.email,
-        countryCode: data.countryCode,
-        phone: data.phone,
-        country: data.country,
-        academyName: data.academyName,
-        studentCount: data.studentCount,
-        courseCount: data.courseCount,
-        currentPlatform: data.currentPlatform,
-        mainRequirement: data.mainRequirement,
-        preferredDate: data.preferredDate,
-        preferredTime: data.preferredTime,
-        timeZone: data.timeZone,
-        message: data.message,
-        source: 'Website Book Demo Page',
+      const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+      const response = await fetch(`${baseUrl}/api/v1/leads/public/platform-demo/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: data.fullName.trim(),
+          email: data.email.trim(),
+          phone: `${data.countryCode}${data.phone.trim()}`,
+          country: data.country.trim(),
+          academy_name: data.academyName.trim(),
+          student_count: data.studentCount,
+          course_count: data.courseCount,
+          current_platform: data.currentPlatform,
+          main_requirement: data.mainRequirement.trim(),
+          preferred_date: data.preferredDate,
+          preferred_time: data.preferredTime,
+          time_zone: data.timeZone,
+          message: data.message?.trim() || '',
+        }),
       });
 
-      setSubmittedLeadUuid(leadUuid);
-      toast.success('Demo Request Submitted Successfully!', {
-        description: `We've received your request. Reference UUID: ${leadUuid}`,
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        const firstFieldError = result && typeof result === 'object'
+          ? Object.values(result).find((value) => Array.isArray(value)) as string[] | undefined
+          : undefined;
+        throw new Error(
+          firstFieldError?.[0] || result?.message || result?.detail ||
+          'Could not submit your demo request. Please check the form and try again.'
+        );
+      }
+      if (!result?.id) throw new Error('The server did not return a demo request reference. Please contact support.');
+      setSubmittedLeadUuid(result.id);
+      toast.success('Demo request received!', {
+        description: 'Our team will contact you to confirm a suitable demo time.',
       });
-    } catch (err: any) {
-      toast.error('Failed to submit demo request', {
-        description: err.message || 'Please check your internet connection.',
-      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unable to submit the request. Please try again.';
+      setApiError(message);
+      toast.error('Could not submit demo request', { description: message });
     }
   };
 
@@ -116,11 +130,11 @@ export default function BookDemoPage() {
 
             <div className="space-y-2">
               <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 font-mono">
-                DEMO CONFIRMED
+                REQUEST RECEIVED
               </span>
               <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Demo Request Received!</h2>
               <p className="text-xs text-slate-600 font-normal leading-relaxed">
-                Thank you! Our academy specialists are preparing a custom walkthrough tailored to your requirements. We have sent a confirmation email with calendar details.
+                Thank you! Our academy specialists are preparing a custom walkthrough tailored to your requirements. Our team will contact you to confirm the demo time. Your preferred slot is not yet booked.
               </p>
             </div>
 
@@ -131,7 +145,7 @@ export default function BookDemoPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Status:</span>
-                <span className="font-bold text-emerald-600">New (Assigned to Specialist)</span>
+                <span className="font-bold text-emerald-600">Received (Awaiting Confirmation)</span>
               </div>
             </div>
 
@@ -163,6 +177,8 @@ export default function BookDemoPage() {
                 Step 1 of 1
               </span>
             </div>
+
+            {apiError && <FormAlert type="error" title="Submission failed" message={apiError} />}
 
             {Object.keys(errors).length > 0 && (
               <FormAlert
@@ -327,7 +343,7 @@ export default function BookDemoPage() {
 
             <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
               <Button type="submit" size="lg" isLoading={isSubmitting} className="w-full sm:w-auto font-semibold px-8">
-                Confirm &amp; Book Demo
+                Submit Demo Request
               </Button>
             </div>
           </form>

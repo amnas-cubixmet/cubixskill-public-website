@@ -57,6 +57,8 @@ export const MainFooter: React.FC = () => {
             <h4 className="font-bold text-white text-xs uppercase tracking-wider">Company</h4>
             <ul className="space-y-2.5 text-xs">
               <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing &amp; Credits</Link></li>
+              <li><Link href="/instructor-register" className="hover:text-white transition-colors">Register Your Academy</Link></li>
+              <li><Link href="/book-demo" className="hover:text-white transition-colors">Book a Demo</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
             </ul>
           </div>
