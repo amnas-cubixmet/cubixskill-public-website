@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Sparkles, CheckCircle2, ArrowLeft, Calendar, Clock, Globe } from 'lucide-react';
+import { CheckCircle2, ArrowLeft } from 'lucide-react';
 import { MainHeader } from '@/components/layout/MainHeader';
 import { MainFooter } from '@/components/layout/MainFooter';
 import { TextInput } from '@/components/ui/TextInput';
