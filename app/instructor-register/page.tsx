@@ -14,14 +14,33 @@ import { FormAlert } from '@/components/ui/FormAlert';
 import { toast } from 'sonner';
 
 const registerAcademySchema = z.object({
-  academyName: z.string().min(2, 'Academy Name is required'),
-  fullName: z.string().min(2, 'Admin Full Name is required'),
-  email: z.string().email('Valid email address is required'),
+  academyName: z.string().trim().min(2, 'Academy name must contain at least 2 characters'),
+  fullName: z.string().trim().min(2, 'Full name must contain at least 2 characters'),
+  email: z.string().trim().toLowerCase().email('Enter a valid email address'),
   countryCode: z.string().min(1, 'Country code is required'),
-  phone: z.string().min(7, 'Valid 7-15 digit phone number is required'),
+  phone: z.string().regex(/^\d{7,15}$/, 'Enter a valid 7-15 digit phone number'),
 });
 
 type RegisterAcademyFormValues = z.infer<typeof registerAcademySchema>;
+
+function apiErrorMessage(response: unknown, fallback: string): string {
+  if (!response || typeof response !== 'object') return fallback;
+  const body = response as Record<string, unknown>;
+  if (typeof body.message === 'string' && body.message.trim()) return body.message;
+  if (typeof body.detail === 'string' && body.detail.trim()) return body.detail;
+  for (const [field, value] of Object.entries(body)) {
+    if (Array.isArray(value) && typeof value[0] === 'string') {
+      return `${field.replace(/_/g, ' ')}: ${value[0]}`;
+    }
+    if (typeof value === 'string' && field !== 'code') return value;
+  }
+  return fallback;
+}
+
+const instructorLoginUrl =
+  process.env.NEXT_PUBLIC_INSTRUCTOR_LOGIN_URL ||
+  (process.env.NODE_ENV === 'development' ? 'http://localhost:5173/login' : null);
+
 
 export default function InstructorRegisterPage() {
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
@@ -38,7 +57,7 @@ export default function InstructorRegisterPage() {
   } = useForm<RegisterAcademyFormValues>({
     resolver: zodResolver(registerAcademySchema),
     defaultValues: {
-      countryCode: '+1',
+      countryCode: '+91',
       academyName: '',
       fullName: '',
       email: '',
@@ -49,34 +68,33 @@ export default function InstructorRegisterPage() {
   const onSubmit = async (data: RegisterAcademyFormValues) => {
     setApiError(null);
     try {
-      const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
-      const fullPhone = `${data.countryCode}${data.phone}`;
-
-      const res = await fetch(`${baseUrl}/api/v1/auth/register/academy/`, {
+      const res = await fetch('/api/instructor-register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           academy_name: data.academyName,
           full_name: data.fullName,
           email: data.email,
-          phone: fullPhone,
+          phone: `${data.countryCode}${data.phone}`,
         }),
       });
+      const responseData: unknown = await res.json().catch(() => null);
 
-      const responseData = await res.json();
-
-      if (!res.ok) {
-        throw new Error(responseData.message || responseData.detail || 'Registration failed. Please try again.');
+      if (res.status !== 201 || !responseData || typeof responseData !== 'object' ||
+          (responseData as { success?: boolean; data?: { academy_uuid?: string } }).success !== true ||
+          !(responseData as { data?: { academy_uuid?: string } }).data?.academy_uuid) {
+        throw new Error(apiErrorMessage(responseData, 'Registration could not be completed. Please try again.'));
       }
 
       setRegisteredEmail(data.email);
       setIsCompleted(true);
-      toast.success('Registration Submitted Successfully!', {
-        description: 'Please check your email to activate your Academy account.',
+      toast.success('Academy registered', {
+        description: 'Your password setup email has been queued. Check your inbox.',
       });
-    } catch (err: any) {
-      setApiError(err.message || 'An error occurred during registration.');
-      toast.error('Registration failed', { description: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An error occurred during registration.';
+      setApiError(message);
+      toast.error('Registration failed', { description: message });
     }
   };
 
@@ -84,21 +102,22 @@ export default function InstructorRegisterPage() {
     if (!registeredEmail) return;
     setIsResending(true);
     try {
-      const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
-      const res = await fetch(`${baseUrl}/api/v1/auth/password/setup/resend/`, {
+      const res = await fetch('/api/instructor-register/resend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: registeredEmail }),
       });
-      const responseData = await res.json();
+      const responseData: unknown = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(responseData.message || 'Failed to resend email.');
+        throw new Error(apiErrorMessage(responseData, 'Unable to request another setup email.'));
       }
-      toast.success('Activation Email Sent!', {
-        description: `A new setup link was sent to ${registeredEmail}.`,
+      toast.success('Request received', {
+        description: 'If your account is eligible, a fresh password setup email will be sent.',
       });
-    } catch (err: any) {
-      toast.error('Resend failed', { description: err.message });
+    } catch (err: unknown) {
+      toast.error('Resend failed', {
+        description: err instanceof Error ? err.message : 'Please try again later.',
+      });
     } finally {
       setIsResending(false);
     }
@@ -137,7 +156,7 @@ export default function InstructorRegisterPage() {
                 Check Your Email to Activate
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed max-w-md mx-auto">
-                Registration submitted successfully. Please check your email (<strong>{registeredEmail}</strong>) to activate your Academy account and set your password.
+                Your Academy account was created. A password setup email is queued for <strong>{registeredEmail}</strong>. Delivery can take a few minutes; check your spam folder too.
               </p>
             </div>
 
@@ -165,7 +184,7 @@ export default function InstructorRegisterPage() {
               >
                 Resend Email
               </Button>
-              <a href={process.env.NEXT_PUBLIC_INSTRUCTOR_LOGIN_URL || "http://localhost:5173/login"}>
+              {instructorLoginUrl && <a href={instructorLoginUrl}>
                 <Button
                   type="button"
                   size="md"
@@ -174,7 +193,7 @@ export default function InstructorRegisterPage() {
                 >
                   Go to Academy Login
                 </Button>
-              </a>
+              </a>}
             </div>
           </div>
         ) : (
@@ -224,9 +243,9 @@ export default function InstructorRegisterPage() {
               label="Phone Number"
               required
               selectedCountryCode={watch('countryCode')}
-              onCountryCodeChange={(code) => setValue('countryCode', code)}
+              onCountryCodeChange={(code) => setValue('countryCode', code, { shouldValidate: true })}
               value={watch('phone')}
-              onChange={(val) => setValue('phone', val)}
+              onChange={(val) => setValue('phone', val, { shouldValidate: true, shouldDirty: true })}
               error={errors.phone?.message}
             />
 
