@@ -7,13 +7,12 @@ function resolveBackendBaseUrl(): string | null {
     process.env.CUBIXSKILL_BACKEND_URL?.trim() ||
     process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 
-  if (!configured && process.env.NODE_ENV === 'production') {
+  if (!configured) {
     return null;
   }
 
-  const raw = configured || 'http://localhost:8000';
   try {
-    const url = new URL(raw);
+    const url = new URL(configured);
     const local = ['localhost', '127.0.0.1', '::1', '[::1]'].includes(url.hostname);
     if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password ||
         url.search || url.hash || (process.env.NODE_ENV === 'production' && (local || url.protocol !== 'https:'))) {

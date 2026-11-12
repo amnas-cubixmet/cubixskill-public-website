@@ -14,6 +14,13 @@ import {
   type InstructorRegistrationRequest,
 } from '@/services/instructor-registration.service';
 
+import { resolveInstructorLoginUrl } from '@/lib/instructor-login-url';
+
+const instructorLoginUrl = resolveInstructorLoginUrl(
+  process.env.NEXT_PUBLIC_INSTRUCTOR_PANEL_URL,
+  process.env.NEXT_PUBLIC_INSTRUCTOR_LOGIN_PATH,
+);
+
 const countries = [
   { code: '+91', label: 'India', digits: 10 },
   { code: '+971', label: 'UAE', digits: 9 },
@@ -214,6 +221,18 @@ export default function InstructorRegisterPage() {
             )}
           </form>
         )}
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-2 text-sm text-slate-700">
+          <span>Already have an account?</span>
+          {instructorLoginUrl ? (
+            <a href={instructorLoginUrl} className="inline-flex min-h-11 items-center rounded-md px-2 font-semibold text-blue-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-blue-600">
+              Login
+            </a>
+          ) : (
+            <p role="status" className="basis-full text-center text-slate-600">
+              Instructor login is unavailable because the Instructor Panel URL is missing or invalid.
+            </p>
+          )}
+        </div>
       </main>
       <MainFooter />
     </div>
