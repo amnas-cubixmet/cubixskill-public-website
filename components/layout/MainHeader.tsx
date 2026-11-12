@@ -78,7 +78,7 @@ export const MainHeader: React.FC = () => {
 
           <Link href="/instructor-register">
             <Button size="md" className="font-semibold" rightIcon={<ArrowRight className="w-4 h-4" />}>
-              Start Free
+              Instructor Registration
             </Button>
           </Link>
         </div>
@@ -140,7 +140,7 @@ export const MainHeader: React.FC = () => {
             <div className="pt-6 border-t border-slate-100 space-y-3">
               <Link href="/instructor-register" onClick={() => setMobileMenuOpen(false)}>
                 <Button size="lg" className="w-full font-semibold justify-center min-h-[48px]">
-                  Start Free Trial
+                  Instructor Registration
                 </Button>
               </Link>
 

@@ -49,7 +49,6 @@ export const AcademyFooter: React.FC<AcademyFooterProps> = ({ academy }) => {
           <div className="space-y-3">
             <h4 className="font-bold text-white text-xs uppercase tracking-wider">Enrollment</h4>
             <ul className="space-y-2.5">
-              <li><Link href={`${baseUrl}/register`} className="hover:text-white transition-colors">Student Registration</Link></li>
               <li><Link href={`${baseUrl}/book-demo`} className="hover:text-white transition-colors">Book Demo Request</Link></li>
             </ul>
           </div>

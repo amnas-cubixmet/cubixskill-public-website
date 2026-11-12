@@ -1,5 +1,5 @@
-import { proxyAcademyRegistration } from '@/lib/server/academyRegistrationProxy';
+import { proxyInstructorRegistration } from '@/lib/server/instructorRegistrationProxy';
 
 export async function POST(request: Request) {
-  return proxyAcademyRegistration(request, 'password/setup/resend/');
+  return proxyInstructorRegistration(request, 'instructor/setup/resend/');
 }
