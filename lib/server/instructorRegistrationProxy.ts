@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-type BackendEndpoint = 'register/academy/' | 'password/setup/resend/';
+type BackendEndpoint = 'instructor/register/' | 'instructor/setup/resend/';
 
 function resolveBackendBaseUrl(): string | null {
   const configured =
@@ -28,7 +28,7 @@ function resolveBackendBaseUrl(): string | null {
   }
 }
 
-export async function proxyAcademyRegistration(
+export async function proxyInstructorRegistration(
   request: Request,
   endpoint: BackendEndpoint,
 ): Promise<NextResponse> {

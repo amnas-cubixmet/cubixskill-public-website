@@ -78,15 +78,6 @@ export const AcademyHeader: React.FC<AcademyHeaderProps> = ({ academy }) => {
             </Button>
           </Link>
 
-          <Link href={`${baseUrl}/register`}>
-            <Button
-              size="md"
-              style={{ backgroundColor: academy.theme.primaryColor }}
-              className="font-semibold text-white hover:opacity-90 cursor-pointer min-h-[48px]"
-            >
-              Enroll Now
-            </Button>
-          </Link>
         </div>
 
         {/* MOBILE MENU TRIGGER */}
@@ -144,15 +135,6 @@ export const AcademyHeader: React.FC<AcademyHeaderProps> = ({ academy }) => {
 
             {/* CTAs */}
             <div className="pt-6 border-t border-slate-100 space-y-3">
-              <Link href={`${baseUrl}/register`} onClick={() => setMobileMenuOpen(false)}>
-                <Button
-                  size="lg"
-                  style={{ backgroundColor: academy.theme.primaryColor }}
-                  className="w-full font-semibold justify-center text-white min-h-[48px]"
-                >
-                  Student Registration
-                </Button>
-              </Link>
 
               <Link href={`${baseUrl}/book-demo`} onClick={() => setMobileMenuOpen(false)}>
                 <Button size="lg" variant="outline" className="w-full font-semibold justify-center min-h-[48px]">

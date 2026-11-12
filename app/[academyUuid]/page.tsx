@@ -163,11 +163,6 @@ export default function AcademyHomePage() {
                   </Button>
                 </Link>
 
-                <Link href={`/${academyUuid}/register`} className="w-full sm:w-auto">
-                  <Button size="lg" variant="outline" className="w-full font-semibold justify-center min-h-[48px] px-8">
-                    Create Student Account
-                  </Button>
-                </Link>
               </div>
             </div>
 

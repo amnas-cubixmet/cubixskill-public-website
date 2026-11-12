@@ -14,45 +14,25 @@ import {
   Lock,
   ChevronDown,
   ShieldCheck,
-  ArrowRight,
   MessageSquare,
   Sparkles,
-  ExternalLink,
-  Copy,
-  MailCheck,
 } from 'lucide-react';
 import { AcademyHeader } from '@/components/layout/AcademyHeader';
 import { AcademyFooter } from '@/components/layout/AcademyFooter';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Modal } from '@/components/ui/Modal';
-import { TextInput } from '@/components/ui/TextInput';
 import { useAcademyStore } from '@/stores/academy.store';
 import { useCourseStore } from '@/stores/course.store';
-import { useDemoLeadStore } from '@/stores/demo-lead.store';
-import { toast } from 'sonner';
 
 export default function CourseDetailPage() {
   const { academyUuid, courseUuid } = useParams<{ academyUuid: string; courseUuid: string }>();
   const getAcademyByUuid = useAcademyStore((state) => state.getAcademyByUuid);
   const getCourseByUuid = useCourseStore((state) => state.getCourseByUuid);
-  const createDemoLead = useDemoLeadStore((state) => state.createDemoLead);
 
   const academy = getAcademyByUuid(academyUuid);
   const course = getCourseByUuid(courseUuid);
 
   const [activeModuleId, setActiveModuleId] = useState<string | null>('mod-1');
-
-  // DEMO REGISTRATION MODAL STATE
-  const [demoModalOpen, setDemoModalOpen] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [organization, setOrganization] = useState('');
-
-  const [demoSuccess, setDemoSuccess] = useState(false);
-  const [generatedToken, setGeneratedToken] = useState('');
-  const [generatedLoginUrl, setGeneratedLoginUrl] = useState('');
 
   if (!academy || !course) {
     return (
@@ -66,41 +46,6 @@ export default function CourseDetailPage() {
     );
   }
 
-  const primaryStyle = { backgroundColor: academy.theme.primaryColor };
-
-  const handleBookDemoSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const result = createDemoLead({
-      academyUuid,
-      courseUuid,
-      courseTitle: course.title,
-      fullName,
-      email,
-      phone,
-      organization,
-    });
-
-    setGeneratedToken(result.token);
-    setGeneratedLoginUrl(result.loginUrl);
-    setDemoSuccess(true);
-    toast.success('5-Day Demo Access Generated!', {
-      description: `Temporary credentials created for ${course.title}.`,
-    });
-  };
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(generatedLoginUrl);
-    toast.success('Login URL Copied!', { description: 'Magic demo login link copied to clipboard.' });
-  };
-
-  const closeDemoModal = () => {
-    setDemoModalOpen(false);
-    setDemoSuccess(false);
-    setFullName('');
-    setEmail('');
-    setPhone('');
-    setOrganization('');
-  };
 
   return (
     <div
@@ -184,13 +129,6 @@ export default function CourseDetailPage() {
               </div>
             </div>
 
-            <div className="w-full">
-              <Link href={`/${academyUuid}/register?course=${courseUuid}`} className="block w-full">
-                <Button size="lg" style={primaryStyle} className="w-full font-semibold justify-center text-white min-h-[48px]">
-                  Enroll Now
-                </Button>
-              </Link>
-            </div>
           </div>
         </div>
 
@@ -293,72 +231,6 @@ export default function CourseDetailPage() {
           </div>
         </div>
       </main>
-
-      {/* AUTOMATED 5-DAY DEMO REGISTRATION MODAL */}
-      <Modal isOpen={demoModalOpen} onClose={closeDemoModal} title={`Book Free 5-Day Demo: ${course.title}`}>
-        {demoSuccess ? (
-          <div className="space-y-5 text-left font-sans text-xs">
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 flex items-start gap-3">
-              <MailCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <span className="font-extrabold text-sm block">5-Day Demo Account Generated!</span>
-                <p className="text-xs text-emerald-800">
-                  Your temporary demo student profile has been created for <span className="font-bold">{course.title}</span>. Access expires in <span className="font-bold">5 Days</span>.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block font-semibold text-slate-900 text-xs">Magic Demo Access Link</label>
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-[11px] flex items-center justify-between gap-2 break-all text-slate-700">
-                <span className="truncate">{generatedLoginUrl}</span>
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="px-2.5 py-1 rounded-md bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 flex items-center gap-1 font-sans text-xs shrink-0 cursor-pointer font-semibold"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="pt-2 space-y-2">
-              <a href={generatedLoginUrl} target="_blank" rel="noreferrer" className="block">
-                <Button size="lg" style={primaryStyle} className="w-full font-semibold justify-center text-white min-h-[48px]" rightIcon={<ExternalLink className="w-4 h-4" />}>
-                  Launch Demo Student Portal Now
-                </Button>
-              </a>
-              <Button size="md" variant="outline" onClick={closeDemoModal} className="w-full font-semibold justify-center">
-                Close Window
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleBookDemoSubmit} className="space-y-4 font-sans text-xs text-left">
-            <p className="text-slate-600 text-xs">
-              No credit card or password required. Get instant 5-day access to demo curriculum lessons and video modules.
-            </p>
-            <TextInput label="Full Name" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Sophia Chen" />
-            <TextInput label="Work Email Address" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="sophia@company.com" />
-            <TextInput label="Mobile Number (Optional)" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 (555) 234-5678" />
-            <TextInput label="Company / Organization (Optional)" value={organization} onChange={(e) => setOrganization(e.target.value)} placeholder="Acme Inc." />
-
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
-              <div className="font-semibold text-slate-900 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-blue-600" />
-                <span>Demo Access Rules:</span>
-              </div>
-              <p>• Access expires automatically after 5 days.</p>
-              <p>• Access is restricted strictly to {course.title}.</p>
-            </div>
-
-            <Button type="submit" size="lg" style={primaryStyle} className="w-full font-semibold text-white justify-center min-h-[48px]" rightIcon={<ArrowRight className="w-4 h-4" />}>
-              Generate Free 5-Day Demo Account
-            </Button>
-          </form>
-        )}
-      </Modal>
 
       <AcademyFooter academy={academy} />
     </div>
