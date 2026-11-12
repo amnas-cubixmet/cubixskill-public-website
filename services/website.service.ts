@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, '');
 
 export function resolveMediaUrl(url: string | null | undefined): string {
   if (!url) return '';
@@ -6,7 +6,7 @@ export function resolveMediaUrl(url: string | null | undefined): string {
     return url;
   }
   const cleanPath = url.startsWith('/') ? url : `/${url}`;
-  return `${API_BASE}${cleanPath}`;
+  return API_BASE ? `${API_BASE}${cleanPath}` : cleanPath;
 }
 
 export interface PublicAcademyConfigResponse {
@@ -41,6 +41,7 @@ export interface PublicAcademyConfigResponse {
 
 export const websitePublicService = {
   async getPublicAcademyWebsite(academySlugOrUuid: string): Promise<PublicAcademyConfigResponse | null> {
+    if (!API_BASE) return null;
     try {
       const res = await fetch(`${API_BASE}/api/v1/website/public/academies/${academySlugOrUuid}/website/`, {
         cache: 'no-store',
@@ -53,6 +54,7 @@ export const websitePublicService = {
   },
 
   async getPublicAcademyCourses(academySlugOrUuid: string): Promise<any[]> {
+    if (!API_BASE) return [];
     try {
       const res = await fetch(`${API_BASE}/api/v1/website/public/academies/${academySlugOrUuid}/courses/`, {
         cache: 'no-store',
